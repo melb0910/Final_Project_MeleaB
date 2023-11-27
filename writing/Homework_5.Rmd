@@ -1,0 +1,17 @@
+---
+title: "Homework 5"
+author: "Melea Barahona"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+getwd()
+homicides <-read.csv("data/homicide-data.csv")
+
+```
+
