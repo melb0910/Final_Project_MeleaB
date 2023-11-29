@@ -10,8 +10,45 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r}
-getwd()
-homicides <-read.csv("data/homicide-data.csv")
+library(ggplot2)
+library(dplyr)
+homicides <-read.csv("/Users/meleabarahona/Library/CloudStorage/OneDrive-Colostate/Second Year 2023-2024/ERHS535/Final_Project_MeleaB/data/homicide-data.csv")
+
+library(lubridate)
+homicides$reported_date <- ymd(homicides$reported_date)
+
+homicides_MD <- homicides %>%
+  filter(city == "Baltimore")
+
+homicides_MD <- homicides_MD %>%
+  mutate(Season = ifelse(month(reported_date) %in% c(5:10, 11:4), "Summer", "Winter"))
+
+test <- homicides_MD %>%
+  group_by(month(reported_date), year(reported_date), Season) %>%
+  count() %>%
+  ungroup()
+
+test <- test %>%
+  mutate(Months = month.abb[`month(reported_date)`])
+
+test <- test %>%
+  rename(year = `year(reported_date)`, month = `month(reported_date)`)
+
+test <- test %>%
+  mutate(yymm = paste(year, month, sep = "-"))
+
+
+```
+
+```{r, width = 200}
+test %>%
+ggplot(aes(x = interaction(year, month, lex.order = TRUE), y = n, fill = Season)) +
+  geom_bar(stat = "identity") +
+  geom_vline(xintercept = "2015-04-12", linetype = "dashed", color = "red") +
+  ggtitle("Homicides in Baltimore, MD") +
+  labs(x = "Dates",
+       y = "Monthly Homicides") +
+theme_bw()
 
 ```
 
