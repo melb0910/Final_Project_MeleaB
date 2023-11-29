@@ -11,7 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r}
 library(ggplot2)
-library(dplyr)
+library(tidyverse)
 homicides <-read.csv("/Users/meleabarahona/Library/CloudStorage/OneDrive-Colostate/Second Year 2023-2024/ERHS535/Final_Project_MeleaB/data/homicide-data.csv")
 
 library(lubridate)
@@ -23,32 +23,46 @@ homicides_MD <- homicides %>%
 homicides_MD <- homicides_MD %>%
   mutate(Season = ifelse(month(reported_date) %in% c(5:10, 11:4), "Summer", "Winter"))
 
-test <- homicides_MD %>%
-  group_by(month(reported_date), year(reported_date), Season) %>%
+library(stringr)
+
+homicides_MD <- homicides_MD %>%
+  separate(reported_date, c("Year", "Month", "Day"), sep = "-") 
+    
+
+Freddie_grey <- homicides_MD %>%
+  filter(victim_first == "FREDDIE CARLOS")
+
+homicides_counts <- homicides_MD %>%
+  group_by(Month, Year, Season) %>%
   count() %>%
   ungroup()
 
-test <- test %>%
-  mutate(Months = month.abb[`month(reported_date)`])
+homicides_counts <- homicides_counts %>%
+  mutate(month_year = paste(Month, Year, 01, sep = "-")) 
 
-test <- test %>%
-  rename(year = `year(reported_date)`, month = `month(reported_date)`)
+homicides_counts$month_year <- myd(homicides_counts$month_year)
 
-test <- test %>%
-  mutate(yymm = paste(year, month, sep = "-"))
+colors <- c("gray", "cadetblue1")
+names(colors) <- c("Summer", "Winter")
+
+colors
 
 
-```
-
-```{r, width = 200}
-test %>%
-ggplot(aes(x = interaction(year, month, lex.order = TRUE), y = n, fill = Season)) +
-  geom_bar(stat = "identity") +
-  geom_vline(xintercept = "2015-04-12", linetype = "dashed", color = "red") +
+graph <- homicides_counts %>%
+  ggplot() +
+  geom_bar(aes(x = month_year, y = n, fill = Season), stat = "identity") +
+  scale_fill_manual(values = colors) +
+  geom_smooth(span = 0.25, se = FALSE, (aes(month_year, n))) +
+  geom_vline(xintercept = ymd("2015-04-12"), linetype = "dashed", color = "red") +
+  geom_text(x = ymd("2015-04-12"), y = 40, label = "Death of \n Freddie Grey", hjust = 1.08, color = "white") +
   ggtitle("Homicides in Baltimore, MD") +
   labs(x = "Dates",
        y = "Monthly Homicides") +
-theme_bw()
+  theme_dark()
+
+print(graph, height = 2, width = 1000)
 
 ```
+
+
 
